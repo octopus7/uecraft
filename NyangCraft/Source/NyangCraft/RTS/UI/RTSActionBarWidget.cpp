@@ -7,17 +7,43 @@
 #include "Components/Button.h"
 #include "Components/TextBlock.h"
 #include "Blueprint/WidgetTree.h"
+#include "Styling/CoreStyle.h"
 
 void URTSActionBarWidget::NativeConstruct()
 {
     Super::NativeConstruct();
 
-    // Create a simple horizontal button box as root content
+    // One-time on-screen message to confirm initialization
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow, TEXT("[RTS] ActionBar initialized"));
+    }
+}
+
+TSharedRef<SWidget> URTSActionBarWidget::RebuildWidget()
+{
+    if (!WidgetTree)
+    {
+        WidgetTree = NewObject<UWidgetTree>(this, UWidgetTree::StaticClass());
+    }
     if (WidgetTree)
     {
         ButtonBox = WidgetTree->ConstructWidget<UHorizontalBox>(UHorizontalBox::StaticClass());
         WidgetTree->RootWidget = ButtonBox;
+
+        // Ensure we have some initial content before the Slate widget is built
+        ClearButtons();
+        if (UTextBlock* Label = MakeText(TEXT("Action Bar")))
+        {
+            const FSlateFontInfo LabelFont = FCoreStyle::GetDefaultFontStyle("Bold", 14);
+            Label->SetFont(LabelFont);
+            Label->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.9f, 0.2f, 1.f)));
+        }
+        MakeText(TEXT("|"));
+        // Add context-specific buttons/text
+        RebuildIfNeeded();
     }
+    return Super::RebuildWidget();
 }
 
 void URTSActionBarWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
@@ -35,24 +61,46 @@ void URTSActionBarWidget::RebuildIfNeeded()
         CachedContext = Ctx;
         CachedQueue = Queue;
         ClearButtons();
+
+        // Persistent label on the left so the bar is always visible
+        if (UTextBlock* Label = MakeText(TEXT("Action Bar")))
+        {
+            const FSlateFontInfo LabelFont = FCoreStyle::GetDefaultFontStyle("Bold", 14);
+            Label->SetFont(LabelFont);
+            Label->SetColorAndOpacity(FSlateColor(FLinearColor(1.f, 0.9f, 0.2f, 1.f))); // gold-ish
+        }
+
+        // Optional separator for readability
+        MakeText(TEXT("|"));
+
+        // Add small debug label to visually confirm widget presence
+        if (bShowDebugLabel)
+        {
+            if (UTextBlock* Dbg = MakeText(TEXT("ActionBar Init")))
+            {
+                // Make it slightly subtle
+                Dbg->SetColorAndOpacity(FSlateColor(FLinearColor(0.9f, 0.9f, 0.2f, 0.9f)));
+                const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", 12);
+                Dbg->SetFont(Font);
+            }
+        }
         switch (CachedContext)
         {
         case EContext::Build:
             {
-                // Build buttons
-                UButton* B1 = MakeButton(TEXT("Build: Barracks"), FSimpleDelegate::CreateUObject(this, &URTSActionBarWidget::OnClickBuildBarracks));
-                UButton* B2 = MakeButton(TEXT("Build: Depot"), FSimpleDelegate::CreateUObject(this, &URTSActionBarWidget::OnClickBuildDepot));
+                if (UButton* B1 = MakeButton(TEXT("Build: Barracks"))) { B1->OnClicked.AddDynamic(this, &URTSActionBarWidget::OnClickBuildBarracks); }
+                if (UButton* B2 = MakeButton(TEXT("Build: Depot"))) { B2->OnClicked.AddDynamic(this, &URTSActionBarWidget::OnClickBuildDepot); }
                 break;
             }
         case EContext::Barracks:
             {
-                UButton* B = MakeButton(TEXT("Train: Marine"), FSimpleDelegate::CreateUObject(this, &URTSActionBarWidget::OnClickTrainMarine));
+                if (UButton* B = MakeButton(TEXT("Train: Marine"))) { B->OnClicked.AddDynamic(this, &URTSActionBarWidget::OnClickTrainMarine); }
                 UTextBlock* Q = MakeText(FString::Printf(TEXT("Queue: %d"), CachedQueue));
                 break;
             }
         case EContext::CommandCenter:
             {
-                UButton* B = MakeButton(TEXT("Train: Worker"), FSimpleDelegate::CreateUObject(this, &URTSActionBarWidget::OnClickTrainWorker));
+                if (UButton* B = MakeButton(TEXT("Train: Worker"))) { B->OnClicked.AddDynamic(this, &URTSActionBarWidget::OnClickTrainWorker); }
                 UTextBlock* Q = MakeText(FString::Printf(TEXT("Queue: %d"), CachedQueue));
                 break;
             }
@@ -92,16 +140,15 @@ void URTSActionBarWidget::ClearButtons()
     ButtonBox->ClearChildren();
 }
 
-UButton* URTSActionBarWidget::MakeButton(const FString& Label, FSimpleDelegate OnClick)
+UButton* URTSActionBarWidget::MakeButton(const FString& Label)
 {
     if (!ButtonBox) return nullptr;
     UButton* Btn = WidgetTree ? WidgetTree->ConstructWidget<UButton>(UButton::StaticClass()) : NewObject<UButton>(this);
     UTextBlock* Txt = WidgetTree ? WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass()) : NewObject<UTextBlock>(this);
     Txt->SetText(FText::FromString(Label));
     Btn->AddChild(Txt);
-    Btn->OnClicked.Add(OnClick);
-    UHorizontalBoxSlot* Slot = ButtonBox->AddChildToHorizontalBox(Btn);
-    Slot->SetPadding(ButtonPadding);
+    UHorizontalBoxSlot* AddedSlot = ButtonBox->AddChildToHorizontalBox(Btn);
+    AddedSlot->SetPadding(ButtonPadding);
     return Btn;
 }
 
@@ -110,8 +157,8 @@ UTextBlock* URTSActionBarWidget::MakeText(const FString& Label)
     if (!ButtonBox) return nullptr;
     UTextBlock* Txt = WidgetTree ? WidgetTree->ConstructWidget<UTextBlock>(UTextBlock::StaticClass()) : NewObject<UTextBlock>(this);
     Txt->SetText(FText::FromString(Label));
-    UHorizontalBoxSlot* Slot = ButtonBox->AddChildToHorizontalBox(Txt);
-    Slot->SetPadding(ButtonPadding);
+    UHorizontalBoxSlot* AddedSlot = ButtonBox->AddChildToHorizontalBox(Txt);
+    AddedSlot->SetPadding(ButtonPadding);
     return Txt;
 }
 

@@ -8,6 +8,7 @@ class ARTSUnit;
 class ARTSResource_Mineral;
 class URTSSelectionWidget;
 class URTSHUDWidget;
+class URTSActionBarWidget;
 class ARTSBuilding_Barracks;
 class ARTSBuilding_SupplyDepot;
 
@@ -53,6 +54,9 @@ protected:
 
     UPROPERTY()
     URTSHUDWidget* HUDWidget = nullptr;
+
+    UPROPERTY()
+    URTSActionBarWidget* ActionBarWidget = nullptr;
 
     // Build placement
     bool bPlacingBarracks = false;

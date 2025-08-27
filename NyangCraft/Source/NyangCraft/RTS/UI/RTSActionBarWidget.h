@@ -19,6 +19,7 @@ class URTSActionBarWidget : public UUserWidget
 public:
     virtual void NativeConstruct() override;
     virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
+    virtual TSharedRef<SWidget> RebuildWidget() override;
 
     void SetOwnerController(ARTSPlayerController* InPC) { OwnerPC = InPC; }
 
@@ -36,17 +37,24 @@ private:
     enum class EContext : uint8 { None, Build, Barracks, CommandCenter };
     EContext CachedContext = EContext::None;
     int32 CachedQueue = -1;
+    
+    // Debug label toggle
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="RTS|ActionBar", meta=(AllowPrivateAccess="true"))
+    bool bShowDebugLabel = true;
 
     void RebuildIfNeeded();
     EContext ComputeContext(int32& OutQueue) const;
     void ClearButtons();
-    UButton* MakeButton(const FString& Label, FSimpleDelegate OnClick);
+    UButton* MakeButton(const FString& Label);
     UTextBlock* MakeText(const FString& Label);
 
     // Handlers
+    UFUNCTION()
     void OnClickBuildBarracks();
+    UFUNCTION()
     void OnClickBuildDepot();
+    UFUNCTION()
     void OnClickTrainWorker();
+    UFUNCTION()
     void OnClickTrainMarine();
 };
-

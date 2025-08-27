@@ -391,6 +391,7 @@ void ARTSPlayerController::BeginPlay()
         if (SelectionWidget)
         {
             SelectionWidget->AddToViewport(1000);
+            SelectionWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
         }
     }
 
@@ -403,14 +404,19 @@ void ARTSPlayerController::BeginPlay()
         }
     }
 
-    // Action bar at bottom center
-    if (URTSActionBarWidget* ActionBar = CreateWidget<URTSActionBarWidget>(this, URTSActionBarWidget::StaticClass()))
+    // Action bar at top-left
+    if (!ActionBarWidget)
     {
-        ActionBar->SetOwnerController(this);
-        ActionBar->AddToViewport(950);
-        ActionBar->SetAnchorsInViewport(FAnchors(0.5f, 1.f));
-        ActionBar->SetAlignmentInViewport(FVector2D(0.5f, 1.f));
-        ActionBar->SetPositionInViewport(FVector2D(0.f, -10.f));
+        ActionBarWidget = CreateWidget<URTSActionBarWidget>(this, URTSActionBarWidget::StaticClass());
+        if (ActionBarWidget)
+        {
+            ActionBarWidget->SetOwnerController(this);
+            ActionBarWidget->AddToViewport(900);
+            ActionBarWidget->SetAnchorsInViewport(FAnchors(0.5f, 0.5f));
+            ActionBarWidget->SetAlignmentInViewport(FVector2D(0.5f, 0.5f));
+            // Slight upward offset from bottom-center
+            ActionBarWidget->SetPositionInViewport(FVector2D(500.f, 400.f));
+        }
     }
 }
 
