@@ -50,7 +50,10 @@ private:
     TWeakObjectPtr<class ARTSBuilding_CommandCenter> DropoffTarget;
     float StateTimer = 0.f;
 
-    void MoveToActor(AActor* Actor, float Acceptance = 100.f);
+    // Move helpers choose a reachable point on NavMesh near target
+    bool MoveToActor(AActor* Actor, float Acceptance = 100.f);
+    bool MoveToLocationOnNav(const FVector& GoalLocation, float Acceptance = 100.f);
+    bool FindReachablePointNear(const FVector& Around, FVector& OutPoint, float SearchExtent = 300.f) const;
     bool IsNearActor(AActor* Actor, float Acceptance) const;
     class ARTSBuilding_CommandCenter* FindNearestCommandCenter() const;
 };

@@ -6,6 +6,7 @@
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
 #include "Blueprint/AIBlueprintHelperLibrary.h"
+#include "NyangCraft.h"
 
 ARTSPlayerController::ARTSPlayerController()
 {
@@ -26,6 +27,11 @@ void ARTSPlayerController::PlayerTick(float DeltaTime)
     if (WasInputKeyJustPressed(EKeys::LeftMouseButton))
     {
         BeginSelection();
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Cyan, TEXT("[RTS] 드래그 선택 시작"));
+        }
+        UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Drag selection started"));
     }
 
     if (IsInputKeyDown(EKeys::LeftMouseButton) && bIsSelecting)
@@ -36,6 +42,11 @@ void ARTSPlayerController::PlayerTick(float DeltaTime)
     if (WasInputKeyJustReleased(EKeys::LeftMouseButton) && bIsSelecting)
     {
         EndSelection();
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Cyan, TEXT("[RTS] 드래그 선택 종료"));
+        }
+        UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Drag selection ended"));
     }
 
     if (WasInputKeyJustPressed(EKeys::RightMouseButton))
@@ -65,11 +76,21 @@ void ARTSPlayerController::HandleSelection()
             SelectedUnits.Reset();
             SelectedUnits.Add(HitUnit);
             HitUnit->SetSelected(true);
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, FString::Printf(TEXT("[RTS] 선택: %s"), *HitUnit->GetName()));
+            }
+            UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Selected unit: %s"), *HitUnit->GetName());
         }
         else
         {
             // Clicked on empty space; clear selection
             ClearSelection();
+            if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 1.2f, FColor::Silver, TEXT("[RTS] 선택 해제"));
+            }
+            UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Selection cleared"));
         }
     }
 }
@@ -89,6 +110,11 @@ void ARTSPlayerController::HandleCommand()
                 Worker->IssueGatherOrder(Mineral);
             }
         }
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Yellow, FString::Printf(TEXT("[RTS] 채집 명령: %s"), *Mineral->GetName()));
+        }
+        UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Issued gather order to mineral: %s"), *Mineral->GetName());
         return;
     }
 
@@ -100,6 +126,12 @@ void ARTSPlayerController::HandleCommand()
             Unit->IssueMoveOrder(Dest);
         }
     }
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.2f, FColor::White,
+            FString::Printf(TEXT("[RTS] 이동 명령: X=%.0f Y=%.0f"), Dest.X, Dest.Y));
+    }
+    UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Move order to: %s"), *Dest.ToString());
 }
 
 bool ARTSPlayerController::TraceUnderCursor(FHitResult& OutHit, ECollisionChannel Channel) const
@@ -178,6 +210,13 @@ void ARTSPlayerController::EndSelection()
             }
         }
     }
+
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green, FString::Printf(
+            TEXT("[RTS] 드래그 선택: %d 유닛"), SelectedUnits.Num()));
+    }
+    UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Drag-selected %d units"), SelectedUnits.Num());
 }
 
 void ARTSPlayerController::ClearSelection()
@@ -190,4 +229,5 @@ void ARTSPlayerController::ClearSelection()
         }
     }
     SelectedUnits.Reset();
+    UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Selection cleared (Reset)"));
 }

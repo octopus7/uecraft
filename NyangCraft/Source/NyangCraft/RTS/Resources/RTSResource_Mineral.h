@@ -17,13 +17,8 @@ protected:
 
 public:
     UFUNCTION(BlueprintCallable, Category="RTS|Resource")
-    int32 Harvest(int32 Request)
-    {
-        const int32 Taken = FMath::Clamp(Request, 0, Amount);
-        Amount -= Taken;
-        return Taken;
-    }
+    int32 Harvest(int32 Request);
 
     UFUNCTION(BlueprintPure, Category="RTS|Resource")
-    bool IsDepleted() const { return Amount <= 0; }
+    bool IsDepleted() const;
 };
