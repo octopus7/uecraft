@@ -12,5 +12,6 @@
 - REQ011: 워커 머리 위 상태 텍스트 영문화 → `REQ011_worker_overhead_text_english.md`
 - REQ012: 워커가 미네랄 앞에서 멈춤 개선 → `REQ012_worker_stops_before_mineral_fix_arrival_radius.md`
 - REQ013: Bounds.SphereRadius 디버그 스피어 표시 → `REQ013_debug_draw_bounds_sphereradius.md`
+- REQ014: Bounds 반경이 작을 때 텍스트 표시 → `REQ014_bounds_radius_text_when_small.md`
 
 Note: 파일명은 크로스플랫폼 호환을 위해 ASCII로 구성됩니다. 한국어 제목/본문은 각 문서 상단에 포함됩니다.
