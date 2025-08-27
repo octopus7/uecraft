@@ -13,5 +13,14 @@ class ARTSGameMode : public AGameModeBase
 
 public:
     ARTSGameMode();
-};
 
+    UFUNCTION(BlueprintCallable, Category="RTS|Resource")
+    void AddMinerals(int32 Amount) { PlayerMinerals += FMath::Max(0, Amount); }
+
+    UFUNCTION(BlueprintCallable, Category="RTS|Resource")
+    int32 GetMinerals() const { return PlayerMinerals; }
+
+private:
+    UPROPERTY(VisibleAnywhere, Category="RTS|Resource")
+    int32 PlayerMinerals = 0;
+};

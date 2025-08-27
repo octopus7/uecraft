@@ -5,6 +5,7 @@
 #include "RTSPlayerController.generated.h"
 
 class ARTSUnit;
+class ARTSResource_Mineral;
 
 UCLASS()
 class ARTSPlayerController : public APlayerController
@@ -25,5 +26,15 @@ protected:
     void HandleCommand();
     bool TraceUnderCursor(FHitResult& OutHit, ECollisionChannel Channel = ECC_Visibility) const;
     void ClearInvalidSelections();
-};
 
+    // Drag selection
+    bool bIsSelecting = false;
+    FVector2D SelectStart = FVector2D::ZeroVector;
+    FVector2D SelectEnd = FVector2D::ZeroVector;
+    float DragThreshold = 8.f; // pixels
+
+    void BeginSelection();
+    void UpdateSelectionDrag();
+    void EndSelection();
+    void ClearSelection();
+};
