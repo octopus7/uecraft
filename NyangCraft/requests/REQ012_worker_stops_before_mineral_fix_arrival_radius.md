@@ -1,5 +1,8 @@
 # REQ012: 워커가 미네랄/커맨드센터 앞에서 멈추는 현상 개선
 
+## Request Summary (EN)
+Workers sometimes stop short of minerals/command centers; improve arrival by considering target bounds radius and projected reachable points, and add debug visuals for the chosen point.
+
 Title (Korean): 대형 액터 앞 정지 문제(접근 판정/도달 지점) 개선
 
 ## 현상
@@ -16,4 +19,3 @@ Title (Korean): 대형 액터 앞 정지 문제(접근 판정/도달 지점) 개
 
 ## 파일
 - `Source/NyangCraft/RTS/Units/RTSWorker.h/.cpp`
-

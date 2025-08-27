@@ -1,5 +1,8 @@
 # REQ007: UMG 드래그 선택 영역 표시 구현
 
+## Request Summary (EN)
+Implement a UMG selection rectangle that renders while dragging, with controller integration to update start/end and show/hide at begin/end of drag.
+
 Title (Korean): UMG로 드래그 박스 시각화 추가
 
 ## 구현 내용
@@ -15,4 +18,3 @@ Title (Korean): UMG로 드래그 박스 시각화 추가
 ## 테스트
 1) 플레이 시작 후 좌클릭 드래그 → 화면에 녹색 외곽선 사각형 표시.
 2) 드래그 해제 시 사각형 사라지고 선택 결과 메시지 출력.
-

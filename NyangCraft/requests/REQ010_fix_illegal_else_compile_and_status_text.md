@@ -1,5 +1,8 @@
 # REQ010: C2181 illegal else 수정 + 상태 텍스트 컴파일 정리
 
+## Request Summary (EN)
+Resolve an `illegal else without matching if` compiler error by fixing block structure and moving UpdateStatusText calls outside conditional branches; also tidy private UPROPERTY access for status text.
+
 Title (Korean): 불일치 else 문법 오류(C2181) 수정 및 워커 상태 텍스트 컴파일 정리
 
 ## 증상
@@ -14,4 +17,3 @@ Title (Korean): 불일치 else 문법 오류(C2181) 수정 및 워커 상태 텍
 ## 참고
 - 관련 파일: `Source/NyangCraft/RTS/Units/RTSWorker.h/.cpp`
 - 기능: 상태 텍스트 표시(대기/이동/채집/반납 + 적재량), 채집 루프 튜닝 유지.
-

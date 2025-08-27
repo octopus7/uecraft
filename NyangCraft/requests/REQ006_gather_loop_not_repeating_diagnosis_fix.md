@@ -1,5 +1,8 @@
 # REQ006: 채집 1회만 수행되는 현상 진단/개선
 
+## Request Summary (EN)
+Investigate why the gather loop runs only once and fix pathing/target issues: project to navmesh for reachable points, add clear warnings, and ensure dropoff exists to keep the loop running.
+
 Title (Korean): 채집이 1회만 되고 반복되지 않는 문제 분석/조치
 
 ## 현상
@@ -19,4 +22,3 @@ Title (Korean): 채집이 1회만 되고 반복되지 않는 문제 분석/조�
 - 맵에 `RTSBuilding_CommandCenter`를 최소 1개 배치.
 - 미네랄 StaticMesh: 필요 시 Collision 완화 또는 "Can Ever Affect Navigation" 해제.
 - `RTSWorker.AcceptanceRadius` 150~200 권장(블루프린트 인스턴스에서 조정 가능).
-

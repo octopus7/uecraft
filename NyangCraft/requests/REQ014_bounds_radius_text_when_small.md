@@ -1,5 +1,8 @@
 # REQ014: Bounds.SphereRadius가 너무 작을 때 텍스트로 표시
 
+## Request Summary (EN)
+When the target bounds radius is tiny (<10), draw a short-lived debug text above the actor with the computed radius to ensure visibility during tuning.
+
 Title (Korean): 디버그 스피어가 보이지 않을 만큼 반경이 작을 때 머리 위 텍스트 출력
 
 ## 변경
@@ -8,4 +11,3 @@ Title (Korean): 디버그 스피어가 보이지 않을 만큼 반경이 작을 
 
 ## 파일
 - `Source/NyangCraft/RTS/Units/RTSWorker.cpp`
-

@@ -1,5 +1,8 @@
 # REQ002: 드래그 선택 + 워커-미네랄 채집 루프
 
+## Request Summary (EN)
+Implement drag selection and single-click selection, right-click context commands, and a worker–mineral gather–deposit loop. Add GameMode mineral tracking and basic on-screen/log messages for clarity.
+
 Title (Korean): 드래그 선택 + 워커-미네랄 채집 루프 구현
 
 ## 구현 요약

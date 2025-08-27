@@ -1,5 +1,8 @@
 # REQ005: 선택/드래그/명령/채집 루프 디버그 메시지 출력
 
+## Request Summary (EN)
+Add on-screen and log debug messages for selection/drag, command issuance, and worker gather/deposit loop to aid verification during development.
+
 Title (Korean): 선택/드래그/명령/채집 루프 확인용 텍스트 메시지 추가
 
 ## 변경 요약
@@ -17,4 +20,3 @@ Title (Korean): 선택/드래그/명령/채집 루프 확인용 텍스트 메시
   - 드래그: 시작/종료/선택된 유닛 수 표시.
   - 우클릭: 이동/채집 명령 메시지 표시.
 - 워커가 채집/반납을 수행할 때 단계별 메시지가 화면/로그에 출력.
-

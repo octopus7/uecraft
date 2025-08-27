@@ -1,5 +1,8 @@
 # REQ004: RTSBuilding_Base.h 포함 경로 오류 수정
 
+## Request Summary (EN)
+Fix C1083 include error for RTSBuilding_Base by adding the module root to Public/Private include paths in Build.cs so headers can be included as "RTS/..." across the module.
+
 Title (Korean): RTSBuilding_Base.h include 오류(C1083) 조치
 
 ## 증상
@@ -19,4 +22,3 @@ Title (Korean): RTSBuilding_Base.h include 오류(C1083) 조치
 ## 후속 안내
 - 에디터에서 `.uproject` 우클릭 → Generate Visual Studio project files(필요 시).
 - VS에서 Clean → Build 또는 `Build.bat`로 클린 빌드 권장.
-

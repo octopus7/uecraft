@@ -1,5 +1,8 @@
 # REQ003: 한글 경로 에러 지속 원인 분석
 
+## Request Summary (EN)
+Diagnose why Unicode/Korean path errors persist after deleting offending files and document mitigation: strip quotes, normalize slashes, restart watchers, clear caches, and enforce ASCII filenames for repo paths.
+
 Title (Korean): 파일 삭제 후에도 한글 경로 에러가 지속되는 이유
 
 ## 현상

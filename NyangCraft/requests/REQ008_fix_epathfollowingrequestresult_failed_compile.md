@@ -1,5 +1,8 @@
 # REQ008: EPathFollowingRequestResult 컴파일 오류 수정
 
+## Request Summary (EN)
+Resolve compile error for `EPathFollowingRequestResult::Failed` by including `Navigation/PathFollowingComponent.h` in the source file that evaluates MoveTo results.
+
 Title (Korean): 'Failed' 심볼 미인식으로 인한 컴파일 실패 조치
 
 ## 증상
@@ -12,4 +15,3 @@ Title (Korean): 'Failed' 심볼 미인식으로 인한 컴파일 실패 조치
 ## 조치
 - `RTSWorker.cpp`에 `#include "Navigation/PathFollowingComponent.h"` 추가.
 - 이동 결과 로깅/판정은 `R != EPathFollowingRequestResult::Failed` 방식으로 호환성 유지.
-

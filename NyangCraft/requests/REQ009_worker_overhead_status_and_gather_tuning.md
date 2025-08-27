@@ -1,5 +1,8 @@
 # REQ009: 건설로봇(워커) 상태 표시 + 채집 접근 튜닝
 
+## Request Summary (EN)
+Add a TextRenderComponent above workers to show state and carried amount; raise AcceptanceRadius and update status on transitions to reduce stops near resources and improve gather start.
+
 Title (Korean): 워커 머리 위 상태 텍스트와 채집 정지 문제 개선
 
 ## 구현
@@ -17,4 +20,3 @@ Title (Korean): 워커 머리 위 상태 텍스트와 채집 정지 문제 개�
 1) SCV를 배치하고 미네랄 우클릭.
 2) 워커 머리 위에 현재 상태와 적재량 표시됨을 확인.
 3) 자원 근처에서 멈춘 경우에도 AcceptanceRadius 확대로 채집 전환이 되는지 확인.
-

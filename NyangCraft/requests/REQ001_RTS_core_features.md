@@ -1,5 +1,8 @@
 # REQ001: RTS 기본 기능 구현 요청 기록
 
+## Request Summary (EN)
+Build core RTS gameplay: production, gathering, movement, and construction by refactoring the TopDown template into an RTS architecture (units, buildings, resources, systems, and UI). Focus on Command Center, Supply Depot, Barracks, Workers, Marines, and Minerals.
+
 Title (Korean): RTS 기본 기능 구현 요청
 
 ## 요청 요약

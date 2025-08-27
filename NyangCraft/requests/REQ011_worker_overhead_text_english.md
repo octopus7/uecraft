@@ -1,5 +1,8 @@
 # REQ011: 워커 머리 위 상태 텍스트 영문화
 
+## Request Summary (EN)
+Localize worker overhead status text to English (Idle, To Resource, Gathering, To Dropoff, Depositing) while keeping the carried amount display.
+
 Title (Korean): 건설로봇(워커) 상태 표기를 영어로 변경
 
 ## 변경 내용
@@ -9,4 +12,3 @@ Title (Korean): 건설로봇(워커) 상태 표기를 영어로 변경
 
 ## 파일
 - `Source/NyangCraft/RTS/Units/RTSWorker.cpp`
-
