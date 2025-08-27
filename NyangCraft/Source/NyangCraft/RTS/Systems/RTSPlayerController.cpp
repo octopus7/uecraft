@@ -4,6 +4,7 @@
 #include "RTS/Resources/RTSResource_Mineral.h"
 #include "RTS/UI/RTSSelectionWidget.h"
 #include "RTS/UI/RTSHUDWidget.h"
+#include "RTS/UI/RTSActionBarWidget.h"
 #include "RTS/Buildings/RTSBuilding_Barracks.h"
 #include "RTS/Buildings/RTSBuilding_SupplyDepot.h"
 #include "RTS/Buildings/RTSBuilding_CommandCenter.h"
@@ -250,6 +251,57 @@ void ARTSPlayerController::ClearInvalidSelections()
     }
 }
 
+void ARTSPlayerController::SingleClickSelect()
+{
+    FHitResult Hit;
+    if (!TraceUnderCursor(Hit)) { ClearSelection(); return; }
+
+    if (ARTSBuilding_Base* HitB = Cast<ARTSBuilding_Base>(Hit.GetActor()))
+    {
+        // Select building; clear units
+        for (TWeakObjectPtr<ARTSUnit>& UnitPtr : SelectedUnits)
+        {
+            if (ARTSUnit* U = UnitPtr.Get())
+            {
+                U->SetSelected(false);
+            }
+        }
+        SelectedUnits.Reset();
+        SelectedBuilding = HitB;
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 1.2f, FColor::Green,
+                FString::Printf(TEXT("[RTS] 건물 선택: %s"), *HitB->GetName()));
+        }
+        return;
+    }
+
+    if (ARTSUnit* HitUnit = Cast<ARTSUnit>(Hit.GetActor()))
+    {
+        // Select single unit
+        for (TWeakObjectPtr<ARTSUnit>& UnitPtr : SelectedUnits)
+        {
+            if (ARTSUnit* U = UnitPtr.Get())
+            {
+                U->SetSelected(false);
+            }
+        }
+        SelectedUnits.Reset();
+        SelectedUnits.Add(HitUnit);
+        HitUnit->SetSelected(true);
+        SelectedBuilding = nullptr;
+        if (GEngine)
+        {
+            GEngine->AddOnScreenDebugMessage(-1, 1.2f, FColor::Green,
+                FString::Printf(TEXT("[RTS] 선택: %s"), *HitUnit->GetName()));
+        }
+        return;
+    }
+
+    // Empty space
+    ClearSelection();
+}
+
 void ARTSPlayerController::BeginSelection()
 {
     bIsSelecting = true;
@@ -288,7 +340,7 @@ void ARTSPlayerController::EndSelection()
     if (Width < DragThreshold && Height < DragThreshold)
     {
         // Treat as single click selection
-        HandleSelection();
+        SingleClickSelect();
         return;
     }
 
@@ -349,6 +401,16 @@ void ARTSPlayerController::BeginPlay()
         {
             HUDWidget->AddToViewport(900);
         }
+    }
+
+    // Action bar at bottom center
+    if (URTSActionBarWidget* ActionBar = CreateWidget<URTSActionBarWidget>(this, URTSActionBarWidget::StaticClass()))
+    {
+        ActionBar->SetOwnerController(this);
+        ActionBar->AddToViewport(950);
+        ActionBar->SetAnchorsInViewport(FAnchors(0.5f, 1.f));
+        ActionBar->SetAlignmentInViewport(FVector2D(0.5f, 1.f));
+        ActionBar->SetPositionInViewport(FVector2D(0.f, -10.f));
     }
 }
 
@@ -452,5 +514,50 @@ void ARTSPlayerController::ClearSelection()
         }
     }
     SelectedUnits.Reset();
+    SelectedBuilding = nullptr;
     UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Selection cleared (Reset)"));
+}
+
+void ARTSPlayerController::UI_TrainWorker()
+{
+    UWorld* World = GetWorld();
+    if (!World) return;
+    if (ARTSBuilding_CommandCenter* CC = Cast<ARTSBuilding_CommandCenter>(SelectedBuilding.Get()))
+    {
+        CC->QueueTrainWorker(1);
+        return;
+    }
+    // fallback: nearest completed CC
+    float BestD2 = TNumericLimits<float>::Max();
+    ARTSBuilding_CommandCenter* Best = nullptr;
+    for (TActorIterator<ARTSBuilding_CommandCenter> It(World); It; ++It)
+    {
+        ARTSBuilding_CommandCenter* C = *It;
+        if (!C || C->IsUnderConstruction()) continue;
+        const float D2 = FVector::DistSquared(C->GetActorLocation(), GetPawn() ? GetPawn()->GetActorLocation() : FVector::ZeroVector);
+        if (D2 < BestD2) { BestD2 = D2; Best = C; }
+    }
+    if (Best) Best->QueueTrainWorker(1);
+}
+
+void ARTSPlayerController::UI_TrainMarine()
+{
+    UWorld* World = GetWorld();
+    if (!World) return;
+    if (ARTSBuilding_Barracks* B = Cast<ARTSBuilding_Barracks>(SelectedBuilding.Get()))
+    {
+        B->QueueTrainMarine(1);
+        return;
+    }
+    // fallback: nearest completed Barracks
+    float BestD2 = TNumericLimits<float>::Max();
+    ARTSBuilding_Barracks* Best = nullptr;
+    for (TActorIterator<ARTSBuilding_Barracks> It(World); It; ++It)
+    {
+        ARTSBuilding_Barracks* Bb = *It;
+        if (!Bb || Bb->IsUnderConstruction()) continue;
+        const float D2 = FVector::DistSquared(Bb->GetActorLocation(), GetPawn() ? GetPawn()->GetActorLocation() : FVector::ZeroVector);
+        if (D2 < BestD2) { BestD2 = D2; Best = Bb; }
+    }
+    if (Best) Best->QueueTrainMarine(1);
 }

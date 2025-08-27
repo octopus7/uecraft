@@ -22,5 +22,6 @@
 - REQ021: Supply depot and marine production → `REQ021_supply_depot_and_marine_production.md`
 - REQ023: Worker production at command center → `REQ023_worker_production_at_command_center.md`
 - REQ024: Spawn units from blueprints → `REQ024_spawn_units_from_blueprints.md`
+- REQ025: Action bar UI bottom-center → `REQ025_action_bar_ui_bottom_center.md`
 
 Note: 파일명은 크로스플랫폼 호환을 위해 ASCII로 구성됩니다. 한국어 제목/본문은 각 문서 상단에 포함됩니다.

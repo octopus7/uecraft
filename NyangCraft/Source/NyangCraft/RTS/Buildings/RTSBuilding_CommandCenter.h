@@ -17,6 +17,12 @@ public:
     UFUNCTION(BlueprintCallable, Category="RTS|Production")
     void QueueTrainWorker(int32 Count = 1);
 
+    UFUNCTION(BlueprintPure, Category="RTS|Production")
+    int32 GetQueueCount() const { return WorkerQueue; }
+
+    UFUNCTION(BlueprintPure, Category="RTS|Production")
+    bool IsTraining() const { return bTraining; }
+
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="RTS|Production")
     float TrainTimeWorker = 6.0f;

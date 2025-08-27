@@ -27,7 +27,11 @@ protected:
     UPROPERTY()
     TArray<TWeakObjectPtr<ARTSUnit>> SelectedUnits;
 
+    UPROPERTY()
+    TWeakObjectPtr<class ARTSBuilding_Base> SelectedBuilding;
+
     void HandleSelection();
+    void SingleClickSelect();
     void HandleCommand();
     bool TraceUnderCursor(FHitResult& OutHit, ECollisionChannel Channel = ECC_Visibility) const;
     void ClearInvalidSelections();
@@ -65,4 +69,26 @@ protected:
 
     UPROPERTY(EditDefaultsOnly, Category="RTS|Build")
     TSubclassOf<ARTSBuilding_SupplyDepot> SupplyDepotClass;
+
+public:
+    UFUNCTION(BlueprintPure, Category="RTS|UI")
+    bool IsPlacingBarracksMode() const { return bPlacingBarracks; }
+
+    UFUNCTION(BlueprintPure, Category="RTS|UI")
+    bool IsPlacingSupplyDepotMode() const { return bPlacingSupplyDepot; }
+
+    UFUNCTION(BlueprintPure, Category="RTS|UI")
+    class ARTSBuilding_Base* GetSelectedBuilding() const { return SelectedBuilding.Get(); }
+
+    UFUNCTION(BlueprintCallable, Category="RTS|UI")
+    void UI_BuildBarracks() { bPlacingBarracks = true; bPlacingSupplyDepot = false; }
+
+    UFUNCTION(BlueprintCallable, Category="RTS|UI")
+    void UI_BuildSupplyDepot() { bPlacingSupplyDepot = true; bPlacingBarracks = false; }
+
+    UFUNCTION(BlueprintCallable, Category="RTS|UI")
+    void UI_TrainWorker();
+
+    UFUNCTION(BlueprintCallable, Category="RTS|UI")
+    void UI_TrainMarine();
 };

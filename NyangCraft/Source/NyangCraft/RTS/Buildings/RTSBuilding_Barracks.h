@@ -17,6 +17,12 @@ public:
     UFUNCTION(BlueprintCallable, Category="RTS|Production")
     void QueueTrainMarine(int32 Count = 1);
 
+    UFUNCTION(BlueprintPure, Category="RTS|Production")
+    int32 GetQueueCount() const { return MarineQueue; }
+
+    UFUNCTION(BlueprintPure, Category="RTS|Production")
+    bool IsTraining() const { return bTraining; }
+
 protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="RTS|Production")
     float TrainTimeMarine = 4.0f;
