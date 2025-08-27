@@ -323,8 +323,7 @@ bool ARTSWorker::MoveToActor(AActor* Actor, float Acceptance)
             const FColor Pink(255, 105, 180);
             const FColor BoundsColor = bTiny ? FColor::Red : Pink;
             DrawDebugSphere(World, Actor->GetActorLocation(), EffectiveR, 24, BoundsColor, false, 1.0f, 0, 1.5f);
-            // Worker-centered acceptance radius (green)
-            DrawDebugSphere(World, GetActorLocation(), Acceptance, 24, FColor::Green, false, 1.0f, 0, 0.75f);
+            // Acceptance radius debug (green) removed per request
         }
 #endif
         // Choose a reachable point near the actor and move to that location
@@ -381,8 +380,7 @@ bool ARTSWorker::MoveToActor(AActor* Actor, float Acceptance)
                 const FColor Pink(255, 105, 180);
                 const FColor BoundsColor = bTiny ? FColor::Red : Pink;
                 DrawDebugSphere(World, MoveTargetActor->GetActorLocation(), EffectiveR, 24, BoundsColor, false, 0.15f, 0, 1.5f);
-                // Worker-centered acceptance radius (green)
-                DrawDebugSphere(World, GetActorLocation(), MoveAcceptance, 24, FColor::Green, false, 0.15f, 0, 0.75f);
+                // Acceptance radius debug (green) removed per request
             }
 #endif
             const bool bNearActor = IsNearActor2D(MoveTargetActor.Get(), MoveAcceptance);

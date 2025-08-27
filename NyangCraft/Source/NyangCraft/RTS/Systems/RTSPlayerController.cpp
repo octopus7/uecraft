@@ -3,6 +3,7 @@
 #include "RTS/Units/RTSWorker.h"
 #include "RTS/Resources/RTSResource_Mineral.h"
 #include "RTS/UI/RTSSelectionWidget.h"
+#include "RTS/UI/RTSHUDWidget.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
@@ -241,6 +242,15 @@ void ARTSPlayerController::BeginPlay()
         if (SelectionWidget)
         {
             SelectionWidget->AddToViewport(1000);
+        }
+    }
+
+    if (!HUDWidget)
+    {
+        HUDWidget = CreateWidget<URTSHUDWidget>(this, URTSHUDWidget::StaticClass());
+        if (HUDWidget)
+        {
+            HUDWidget->AddToViewport(900);
         }
     }
 }

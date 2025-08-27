@@ -7,6 +7,7 @@
 class ARTSUnit;
 class ARTSResource_Mineral;
 class URTSSelectionWidget;
+class URTSHUDWidget;
 
 UCLASS()
 class ARTSPlayerController : public APlayerController
@@ -43,4 +44,7 @@ protected:
     // UI
     UPROPERTY()
     URTSSelectionWidget* SelectionWidget = nullptr;
+
+    UPROPERTY()
+    URTSHUDWidget* HUDWidget = nullptr;
 };

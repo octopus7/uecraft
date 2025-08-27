@@ -15,5 +15,7 @@
 - REQ014: Bounds 반경이 작을 때 텍스트 표시 → `REQ014_bounds_radius_text_when_small.md`
 - REQ015: Overhaul worker movement and gathering → `REQ015_overhaul_worker_movement_and_gathering.md`
 - REQ016: Exclusive mineral occupancy and worker reroute → `REQ016_exclusive_mineral_occupancy_and_worker_reroute.md`
+- REQ017: Mineral HUD widget → `REQ017_mineral_hud_widget.md`
+- REQ018: Move mineral HUD to top-right → `REQ018_move_mineral_hud_top_right.md`
 
 Note: 파일명은 크로스플랫폼 호환을 위해 ASCII로 구성됩니다. 한국어 제목/본문은 각 문서 상단에 포함됩니다.
