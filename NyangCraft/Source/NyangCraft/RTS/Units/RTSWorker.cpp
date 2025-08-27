@@ -6,13 +6,30 @@
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "NavigationSystem.h"
+#include "Navigation/PathFollowingComponent.h"
 #include "Engine/Engine.h"
 #include "NyangCraft.h"
 #include <cfloat>
+#include "Components/TextRenderComponent.h"
+#include "Components/PrimitiveComponent.h"
+#include "DrawDebugHelpers.h"
 
 ARTSWorker::ARTSWorker()
 {
     // Worker-specific defaults can be set here.
+    StatusText = CreateDefaultSubobject<UTextRenderComponent>(TEXT("StatusText"));
+    if (StatusText)
+    {
+        StatusText->SetupAttachment(RootComponent);
+        StatusText->SetHorizontalAlignment(EHorizTextAligment::EHTA_Center);
+        StatusText->SetVerticalAlignment(EVerticalTextAligment::EVRTA_TextCenter);
+        StatusText->SetWorldSize(18.f);
+        StatusText->SetTextRenderColor(FColor::Cyan);
+        StatusText->SetRelativeLocation(FVector(0.f, 0.f, 110.f));
+        StatusText->SetHiddenInGame(false);
+    }
+    // Billboard status text to camera each tick
+    FaceCamera();
 }
 
 void ARTSWorker::Tick(float DeltaSeconds)
@@ -36,6 +53,12 @@ void ARTSWorker::Tick(float DeltaSeconds)
                     FString::Printf(TEXT("[RTS] %s 채집 시작"), *GetName()));
             }
             UE_LOG(LogNyangCraft, Log, TEXT("[RTS] %s started gathering"), *GetName());
+            UpdateStatusText();
+        }
+        else
+        {
+            // Keep approaching until within interact range
+            MoveToActor(TargetResource.Get(), AcceptanceRadius);
         }
         break;
 
@@ -84,11 +107,13 @@ void ARTSWorker::Tick(float DeltaSeconds)
                     }
                     UE_LOG(LogNyangCraft, Warning, TEXT("[RTS] No CommandCenter found for dropoff"));
                 }
+                UpdateStatusText();
             }
             else
             {
                 // Continue gathering
                 StateTimer = GatherDuration;
+                UpdateStatusText();
             }
             if (Harvested > 0)
             {
@@ -109,6 +134,12 @@ void ARTSWorker::Tick(float DeltaSeconds)
             State = EWorkerState::Depositing;
             StateTimer = DepositDuration;
             UE_LOG(LogNyangCraft, Log, TEXT("[RTS] %s depositing %d"), *GetName(), Carried);
+            UpdateStatusText();
+        }
+        else
+        {
+            // Keep approaching dropoff until within interact range
+            MoveToActor(DropoffTarget.Get(), AcceptanceRadius);
         }
         break;
 
@@ -131,6 +162,7 @@ void ARTSWorker::Tick(float DeltaSeconds)
                         FString::Printf(TEXT("[RTS] %s 반납 +%d"), *GetName(), Carried));
                 }
                 Carried = 0;
+                UpdateStatusText();
             }
 
             // Resume gathering if resource remains
@@ -148,13 +180,15 @@ void ARTSWorker::Tick(float DeltaSeconds)
                     {
                         GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red,
                             TEXT("[RTS] 자원 근처 도달 불가(네비 없음)"));
-                    }
-                    UE_LOG(LogNyangCraft, Warning, TEXT("[RTS] %s cannot find reachable point near resource"), *GetName());
+                }
+                UE_LOG(LogNyangCraft, Warning, TEXT("[RTS] %s cannot find reachable point near resource"), *GetName());
+                UpdateStatusText();
                 }
             }
             else
             {
                 State = EWorkerState::Idle;
+                UpdateStatusText();
             }
         }
         break;
@@ -173,11 +207,23 @@ void ARTSWorker::IssueGatherOrder(ARTSResource_Mineral* InResource)
             FString::Printf(TEXT("[RTS] %s 채집 명령 → %s"), *GetName(), *InResource->GetName()));
     }
     UE_LOG(LogNyangCraft, Log, TEXT("[RTS] %s issued gather order to %s"), *GetName(), *InResource->GetName());
+    UpdateStatusText();
 }
 
 bool ARTSWorker::MoveToActor(AActor* Actor, float Acceptance)
 {
     if (!Actor) return false;
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+    if (UWorld* World = GetWorld())
+    {
+        if (const UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(Actor->GetRootComponent()))
+        {
+            const float R = Prim->Bounds.SphereRadius;
+            DrawDebugSphere(World, Actor->GetActorLocation(), R, 24, FColor::Cyan, false, 1.0f, 0, 1.5f);
+            DrawDebugSphere(World, Actor->GetActorLocation(), R + Acceptance, 24, FColor::Yellow, false, 1.0f, 0, 0.75f);
+        }
+    }
+#endif
     return MoveToLocationOnNav(Actor->GetActorLocation(), Acceptance);
 }
 
@@ -192,6 +238,10 @@ bool ARTSWorker::MoveToLocationOnNav(const FVector& GoalLocation, float Acceptan
 
     if (AAIController* AI = Cast<AAIController>(GetController()))
     {
+        LastMoveTarget = Reachable;
+#if !(UE_BUILD_SHIPPING || UE_BUILD_TEST)
+        DrawDebugSphere(GetWorld(), Reachable, 25.f, 12, FColor::Green, false, 2.0f);
+#endif
         const EPathFollowingRequestResult::Type R = AI->MoveToLocation(Reachable, Acceptance, true, true, true, false);
         const TCHAR* RText = (R == EPathFollowingRequestResult::Failed)
             ? TEXT("Failed")
@@ -232,7 +282,15 @@ bool ARTSWorker::FindReachablePointNear(const FVector& Around, FVector& OutPoint
 bool ARTSWorker::IsNearActor(AActor* Actor, float Acceptance) const
 {
     if (!Actor) return false;
-    return FVector::Dist2D(GetActorLocation(), Actor->GetActorLocation()) <= Acceptance;
+    const FVector MyLoc = GetActorLocation();
+    const FVector TargetLoc = Actor->GetActorLocation();
+    float Radius = 0.f;
+    if (const UPrimitiveComponent* Prim = Cast<UPrimitiveComponent>(Actor->GetRootComponent()))
+    {
+        Radius = Prim->Bounds.SphereRadius;
+    }
+    const float DistSurface = FMath::Max(0.f, FVector::Dist2D(MyLoc, TargetLoc) - Radius);
+    return DistSurface <= Acceptance;
 }
 
 ARTSBuilding_CommandCenter* ARTSWorker::FindNearestCommandCenter() const
@@ -253,4 +311,37 @@ ARTSBuilding_CommandCenter* ARTSWorker::FindNearestCommandCenter() const
         }
     }
     return Best;
+}
+
+void ARTSWorker::UpdateStatusText()
+{
+    if (!StatusText) return;
+    FString StateStr;
+    switch (State)
+    {
+    case EWorkerState::Idle: StateStr = TEXT("Idle"); break;
+    case EWorkerState::MovingToResource: StateStr = TEXT("To Resource"); break;
+    case EWorkerState::Gathering: StateStr = FString::Printf(TEXT("Gathering %.1fs"), FMath::Max(0.f, StateTimer)); break;
+    case EWorkerState::MovingToDropoff: StateStr = TEXT("To Dropoff"); break;
+    case EWorkerState::Depositing: StateStr = FString::Printf(TEXT("Depositing %.1fs"), FMath::Max(0.f, StateTimer)); break;
+    }
+    const FString CarryStr = FString::Printf(TEXT(" %d/%d"), Carried, CarryCapacity);
+    StatusText->SetText(FText::FromString(StateStr + CarryStr));
+}
+
+void ARTSWorker::FaceCamera()
+{
+    if (!StatusText) return;
+    UWorld* World = GetWorld();
+    if (!World) return;
+    APlayerCameraManager* PCM = UGameplayStatics::GetPlayerCameraManager(World, 0);
+    if (!PCM) return;
+    const FVector ToCam = PCM->GetCameraLocation() - StatusText->GetComponentLocation();
+    FRotator LookRot = FRotationMatrix::MakeFromX(ToCam).Rotator();
+    if (bBillboardYawOnly)
+    {
+        LookRot.Pitch = 0.f;
+        LookRot.Roll = 0.f;
+    }
+    StatusText->SetWorldRotation(LookRot);
 }

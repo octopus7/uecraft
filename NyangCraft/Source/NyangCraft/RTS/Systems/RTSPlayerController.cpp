@@ -2,6 +2,7 @@
 #include "RTS/Units/RTSUnit.h"
 #include "RTS/Units/RTSWorker.h"
 #include "RTS/Resources/RTSResource_Mineral.h"
+#include "RTS/UI/RTSSelectionWidget.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
@@ -160,6 +161,10 @@ void ARTSPlayerController::BeginSelection()
         SelectStart = FVector2D(X, Y);
         SelectEnd = SelectStart;
     }
+    if (SelectionWidget)
+    {
+        SelectionWidget->SetSelectionRect(true, SelectStart, SelectEnd);
+    }
 }
 
 void ARTSPlayerController::UpdateSelectionDrag()
@@ -168,6 +173,10 @@ void ARTSPlayerController::UpdateSelectionDrag()
     if (GetMousePosition(X, Y))
     {
         SelectEnd = FVector2D(X, Y);
+    }
+    if (SelectionWidget)
+    {
+        SelectionWidget->SetSelectionRect(true, SelectStart, SelectEnd);
     }
 }
 
@@ -217,6 +226,23 @@ void ARTSPlayerController::EndSelection()
             TEXT("[RTS] 드래그 선택: %d 유닛"), SelectedUnits.Num()));
     }
     UE_LOG(LogNyangCraft, Log, TEXT("[RTS] Drag-selected %d units"), SelectedUnits.Num());
+    if (SelectionWidget)
+    {
+        SelectionWidget->SetSelectionRect(false, FVector2D::ZeroVector, FVector2D::ZeroVector);
+    }
+}
+
+void ARTSPlayerController::BeginPlay()
+{
+    Super::BeginPlay();
+    if (!SelectionWidget)
+    {
+        SelectionWidget = CreateWidget<URTSSelectionWidget>(this, URTSSelectionWidget::StaticClass());
+        if (SelectionWidget)
+        {
+            SelectionWidget->AddToViewport(1000);
+        }
+    }
 }
 
 void ARTSPlayerController::ClearSelection()

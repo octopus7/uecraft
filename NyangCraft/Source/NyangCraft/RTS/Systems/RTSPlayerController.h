@@ -6,6 +6,7 @@
 
 class ARTSUnit;
 class ARTSResource_Mineral;
+class URTSSelectionWidget;
 
 UCLASS()
 class ARTSPlayerController : public APlayerController
@@ -16,6 +17,7 @@ public:
     ARTSPlayerController();
     virtual void PlayerTick(float DeltaTime) override;
     virtual void SetupInputComponent() override;
+    virtual void BeginPlay() override;
 
 protected:
     // selection
@@ -37,4 +39,8 @@ protected:
     void UpdateSelectionDrag();
     void EndSelection();
     void ClearSelection();
+
+    // UI
+    UPROPERTY()
+    URTSSelectionWidget* SelectionWidget = nullptr;
 };

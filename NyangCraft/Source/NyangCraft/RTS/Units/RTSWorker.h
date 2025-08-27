@@ -33,7 +33,7 @@ protected:
     float DepositDuration = 0.5f;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="RTS|Resource")
-    float AcceptanceRadius = 120.f;
+    float AcceptanceRadius = 250.f;
 
 private:
     enum class EWorkerState : uint8
@@ -56,4 +56,17 @@ private:
     bool FindReachablePointNear(const FVector& Around, FVector& OutPoint, float SearchExtent = 300.f) const;
     bool IsNearActor(AActor* Actor, float Acceptance) const;
     class ARTSBuilding_CommandCenter* FindNearestCommandCenter() const;
+
+    // Overhead status
+    void UpdateStatusText();
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category="RTS|UI", meta=(AllowPrivateAccess="true"))
+    class UTextRenderComponent* StatusText;
+
+    void FaceCamera();
+    UPROPERTY(EditAnywhere, Category="RTS|UI")
+    bool bBillboardYawOnly = true;
+
+    // Debug/arrival helpers
+    UPROPERTY(VisibleAnywhere, Category="RTS|Debug", meta=(AllowPrivateAccess="true"))
+    FVector LastMoveTarget = FVector::ZeroVector;
 };
