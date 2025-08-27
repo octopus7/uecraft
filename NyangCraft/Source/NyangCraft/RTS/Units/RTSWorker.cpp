@@ -22,12 +22,20 @@ ARTSWorker::ARTSWorker()
         StatusText->SetupAttachment(RootComponent);
         StatusText->SetHorizontalAlignment(EHorizTextAligment::EHTA_Center);
         StatusText->SetVerticalAlignment(EVerticalTextAligment::EVRTA_TextCenter);
-        StatusText->SetWorldSize(18.f);
+        StatusText->SetWorldSize(36.f);
         StatusText->SetTextRenderColor(FColor::Cyan);
         StatusText->SetRelativeLocation(FVector(0.f, 0.f, 110.f));
         StatusText->SetHiddenInGame(false);
+        StatusText->SetMobility(EComponentMobility::Movable);
     }
+    PrimaryActorTick.bCanEverTick = true;
     UpdateStatusText();
+}
+
+void ARTSWorker::Tick(float DeltaSeconds)
+{
+    Super::Tick(DeltaSeconds);
+    FaceCamera();
 }
 
 void ARTSWorker::IssueGatherOrder(ARTSResource_Mineral* InResource)

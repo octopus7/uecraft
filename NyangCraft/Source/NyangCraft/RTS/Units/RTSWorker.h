@@ -13,6 +13,7 @@ class ARTSWorker : public ARTSUnit
 
 public:
     ARTSWorker();
+    virtual void Tick(float DeltaSeconds) override;
 
     UFUNCTION(BlueprintCallable)
     void IssueGatherOrder(class ARTSResource_Mineral* InResource);
@@ -80,7 +81,7 @@ private:
 
     void FaceCamera();
     UPROPERTY(EditAnywhere, Category="RTS|UI")
-    bool bBillboardYawOnly = true;
+    bool bBillboardYawOnly = false; // face camera on all axes by default
 
     // Move polling (avoid engine callback type in UFUNCTION)
     TWeakObjectPtr<AActor> MoveTargetActor;

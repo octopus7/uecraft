@@ -23,5 +23,12 @@
 
 ## 파일명/경로 정책
 - 크로스플랫폼 호환성을 위해 파일명은 ASCII 사용(영문, 숫자, `-`, `_`).
-- 요청 기록은 `requests/REQ###_slug.md` 형식으로 저장.
-- 한국어 제목/본문은 문서 내에 포함하고, 인덱스(`requests/INDEX.md`)에서 번호-제목-파일명을 매핑합니다.
+- 요청 기록은 반드시 `requests/REQ###_english-slug.md` 형식의 Markdown 파일로 저장합니다.
+- 문서의 최상단 제목(H1)은 영어 요약으로 작성합니다. 한국어 원문/요약은 본문 섹션에 병기 가능합니다.
+- 각 요청 문서에는 최소한 다음을 포함합니다:
+  - Request summary(EN), 원문 요청(KO)
+  - Changes implemented: 핵심 변경 사항 목록
+  - Files: 수정/추가된 파일 경로 목록
+  - Test steps: 확인 절차
+  - Notes/Follow-ups: 추가 메모
+- 새 문서를 추가할 때 `requests/INDEX.md`에 항목을 함께 등록합니다.
