@@ -67,9 +67,11 @@ private:
     void StartDeposit();
     void DoDeposit();
     void FinishAllTasks();
+    void WaitNearResource(class ARTSResource_Mineral* NearResource);
 
     // Helpers
     class ARTSBuilding_CommandCenter* FindNearestCommandCenter() const;
+    class ARTSResource_Mineral* FindAlternateResourceNear(const FVector& Near, float SearchRadius) const;
     bool MoveToActor(AActor* Actor, float Acceptance);
     bool MoveToLocationOnNav(const FVector& GoalLocation, float Acceptance);
     bool FindReachablePointNear(const FVector& Around, FVector& OutPoint, float SearchExtent = 400.f) const;

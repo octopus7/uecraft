@@ -43,16 +43,45 @@ void ARTSWorker::IssueGatherOrder(ARTSResource_Mineral* InResource)
     // Reset any previous work
     FinishAllTasks();
 
-    if (!InResource)
+    if (!InResource || InResource->HasAnyFlags(RF_ClassDefaultObject))
     {
         Phase = EWorkerPhase::Idle;
+        UE_LOG(LogNyangCraft, Warning, TEXT("[RTS] IssueGatherOrder ignored: invalid or CDO resource: %s"), InResource ? *InResource->GetName() : TEXT("<null>"));
         UpdateStatusText();
         return;
     }
 
-    TargetResource = InResource;
-    Phase = EWorkerPhase::MoveToResource;
-    MoveToResource();
+    // Try to claim this resource exclusively
+    if (InResource->TryClaim(this))
+    {
+        TargetResource = InResource;
+        Phase = EWorkerPhase::MoveToResource;
+        MoveToResource();
+    }
+    else
+    {
+        // Look for an alternate nearby resource (within 2500 units of clicked one)
+        const float SearchRadius = 2500.f;
+        if (ARTSResource_Mineral* Alt = FindAlternateResourceNear(InResource->GetActorLocation(), SearchRadius))
+        {
+            if (Alt->TryClaim(this))
+            {
+                TargetResource = Alt;
+                Phase = EWorkerPhase::MoveToResource;
+                MoveToResource();
+            }
+            else
+            {
+                // Fallback to waiting near original
+                WaitNearResource(InResource);
+            }
+        }
+        else
+        {
+            // No alternate found; wait near the closest mineral (original)
+            WaitNearResource(InResource);
+        }
+    }
 
     if (GEngine)
     {
@@ -190,7 +219,42 @@ void ARTSWorker::FinishAllTasks()
 {
     GetWorldTimerManager().ClearTimer(GatherTimerHandle);
     GetWorldTimerManager().ClearTimer(DepositTimerHandle);
+    GetWorldTimerManager().ClearTimer(MovePollTimer);
+    // Release resource claim if any
+    if (TargetResource.IsValid())
+    {
+        TargetResource->ReleaseClaim(this);
+    }
     Phase = EWorkerPhase::Idle;
+    UpdateStatusText();
+}
+
+void ARTSWorker::WaitNearResource(ARTSResource_Mineral* NearResource)
+{
+    if (!NearResource)
+    {
+        FinishAllTasks();
+        return;
+    }
+
+    // Pick a point around the resource to stand by
+    FVector Around = NearResource->GetActorLocation();
+    const float Ring = FMath::Max(300.f, AcceptanceRadius + 100.f);
+    const float Angle = FMath::FRandRange(0.f, 2.f * PI);
+    const FVector Offset = FVector(FMath::Cos(Angle), FMath::Sin(Angle), 0.f) * Ring;
+    FVector WaitLoc;
+    if (!FindReachablePointNear(Around + Offset, WaitLoc, 600.f))
+    {
+        // As a last resort, try directly near resource
+        if (!FindReachablePointNear(Around, WaitLoc, 800.f))
+        {
+            FinishAllTasks();
+            return;
+        }
+    }
+    // Move to wait location; after arrival, remain Idle
+    Phase = EWorkerPhase::Idle;
+    MoveToLocationOnNav(WaitLoc, 50.f);
     UpdateStatusText();
 }
 
@@ -214,9 +278,35 @@ ARTSBuilding_CommandCenter* ARTSWorker::FindNearestCommandCenter() const
     return Best;
 }
 
+ARTSResource_Mineral* ARTSWorker::FindAlternateResourceNear(const FVector& Near, float SearchRadius) const
+{
+    UWorld* World = GetWorld();
+    if (!World) return nullptr;
+    ARTSResource_Mineral* Best = nullptr;
+    float BestDist = FLT_MAX;
+    for (TActorIterator<ARTSResource_Mineral> It(World); It; ++It)
+    {
+        ARTSResource_Mineral* Res = *It;
+        if (!Res || Res->HasAnyFlags(RF_ClassDefaultObject) || Res->IsDepleted()) continue;
+        if (Res->IsOccupied()) continue;
+        const float D2 = FVector::DistSquared(Near, Res->GetActorLocation());
+        if (D2 <= SearchRadius * SearchRadius && D2 < BestDist)
+        {
+            Best = Res;
+            BestDist = D2;
+        }
+    }
+    return Best;
+}
+
 bool ARTSWorker::MoveToActor(AActor* Actor, float Acceptance)
 {
     if (!Actor) return false;
+    if (Actor->HasAnyFlags(RF_ClassDefaultObject))
+    {
+        UE_LOG(LogNyangCraft, Warning, TEXT("[RTS] MoveToActor aborted: target is CDO: %s"), *Actor->GetName());
+        return false;
+    }
     if (AAIController* AI = Cast<AAIController>(GetController()))
     {
         // Debug: target bounds (pink or red if very small) and acceptance radius (green)
@@ -266,6 +356,13 @@ bool ARTSWorker::MoveToActor(AActor* Actor, float Acceptance)
         {
             if (!MoveTargetActor.IsValid())
             {
+                GetWorldTimerManager().ClearTimer(MovePollTimer);
+                FinishAllTasks();
+                return;
+            }
+            if (MoveTargetActor->HasAnyFlags(RF_ClassDefaultObject))
+            {
+                UE_LOG(LogNyangCraft, Warning, TEXT("[RTS] Poll aborted: target is CDO: %s"), *MoveTargetActor->GetName());
                 GetWorldTimerManager().ClearTimer(MovePollTimer);
                 FinishAllTasks();
                 return;

@@ -1,4 +1,5 @@
 #include "RTS/Resources/RTSResource_Mineral.h"
+#include "RTS/Units/RTSWorker.h"
 #include "Engine/Engine.h"
 #include "NyangCraft.h"
 
@@ -23,5 +24,35 @@ int32 ARTSResource_Mineral::Harvest(int32 Request)
 bool ARTSResource_Mineral::IsDepleted() const
 {
     return Amount <= 0;
+}
+
+bool ARTSResource_Mineral::TryClaim(ARTSWorker* Worker)
+{
+    if (!Worker) return false;
+    if (IsDepleted()) return false;
+    if (HasAnyFlags(RF_ClassDefaultObject)) return false;
+    if (Worker->HasAnyFlags(RF_ClassDefaultObject)) return false;
+    // If already occupied by this worker, allow
+    if (OccupiedBy.IsValid() && OccupiedBy.Get() == Worker)
+    {
+        return true;
+    }
+    if (OccupiedBy.IsValid())
+    {
+        return false;
+    }
+    OccupiedBy = Worker;
+    UE_LOG(LogNyangCraft, Verbose, TEXT("[RTS] %s claimed by %s"), *GetName(), *Worker->GetName());
+    return true;
+}
+
+void ARTSResource_Mineral::ReleaseClaim(ARTSWorker* Worker)
+{
+    if (!Worker) return;
+    if (OccupiedBy.IsValid() && OccupiedBy.Get() == Worker)
+    {
+        OccupiedBy = nullptr;
+        UE_LOG(LogNyangCraft, Verbose, TEXT("[RTS] %s released by %s"), *GetName(), *Worker->GetName());
+    }
 }
 
