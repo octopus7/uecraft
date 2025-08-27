@@ -17,5 +17,10 @@
 - REQ016: Exclusive mineral occupancy and worker reroute → `REQ016_exclusive_mineral_occupancy_and_worker_reroute.md`
 - REQ017: Mineral HUD widget → `REQ017_mineral_hud_widget.md`
 - REQ018: Move mineral HUD to top-right → `REQ018_move_mineral_hud_top_right.md`
+- REQ019: Barracks construction and cost → `REQ019_barracks_construction_and_cost.md`
+- REQ020: Set barracks cost to 30 → `REQ020_barracks_cost_to_30.md`
+- REQ021: Supply depot and marine production → `REQ021_supply_depot_and_marine_production.md`
+- REQ023: Worker production at command center → `REQ023_worker_production_at_command_center.md`
+- REQ024: Spawn units from blueprints → `REQ024_spawn_units_from_blueprints.md`
 
 Note: 파일명은 크로스플랫폼 호환을 위해 ASCII로 구성됩니다. 한국어 제목/본문은 각 문서 상단에 포함됩니다.

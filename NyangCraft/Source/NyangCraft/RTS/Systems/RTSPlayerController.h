@@ -8,6 +8,8 @@ class ARTSUnit;
 class ARTSResource_Mineral;
 class URTSSelectionWidget;
 class URTSHUDWidget;
+class ARTSBuilding_Barracks;
+class ARTSBuilding_SupplyDepot;
 
 UCLASS()
 class ARTSPlayerController : public APlayerController
@@ -47,4 +49,20 @@ protected:
 
     UPROPERTY()
     URTSHUDWidget* HUDWidget = nullptr;
+
+    // Build placement
+    bool bPlacingBarracks = false;
+    void TogglePlaceBarracksMode();
+    bool PlaceBarracksAtCursor();
+
+    bool bPlacingSupplyDepot = false;
+    void TogglePlaceSupplyDepotMode();
+    bool PlaceSupplyDepotAtCursor();
+
+    // Configurable build classes (set to Blueprint classes in editor)
+    UPROPERTY(EditDefaultsOnly, Category="RTS|Build")
+    TSubclassOf<ARTSBuilding_Barracks> BarracksClass;
+
+    UPROPERTY(EditDefaultsOnly, Category="RTS|Build")
+    TSubclassOf<ARTSBuilding_SupplyDepot> SupplyDepotClass;
 };

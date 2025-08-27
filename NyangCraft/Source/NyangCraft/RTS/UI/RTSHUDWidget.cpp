@@ -12,6 +12,8 @@ void URTSHUDWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
         if (ARTSGameMode* GM = World->GetAuthGameMode<ARTSGameMode>())
         {
             CachedMinerals = GM->GetMinerals();
+            CachedSupplyUsed = GM->GetSupplyUsed();
+            CachedSupplyCap = GM->GetSupplyCap();
         }
     }
 }
@@ -29,7 +31,7 @@ int32 URTSHUDWidget::NativePaint(const FPaintArgs& Args,
     const float Scale = UWidgetLayoutLibrary::GetViewportScale(GetWorld());
     const FVector2D ViewSize = AllottedGeometry.GetLocalSize();
 
-    const FString Text = FString::Printf(TEXT("Minerals: %d"), CachedMinerals);
+    const FString Text = FString::Printf(TEXT("Minerals: %d    Supply: %d/%d"), CachedMinerals, CachedSupplyUsed, CachedSupplyCap);
     const FSlateFontInfo Font = FCoreStyle::GetDefaultFontStyle("Regular", FontSize);
 
     // Approximate text size and compute panel size

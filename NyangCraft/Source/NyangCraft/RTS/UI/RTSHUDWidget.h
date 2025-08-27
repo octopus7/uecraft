@@ -39,5 +39,6 @@ protected:
 
 private:
     mutable int32 CachedMinerals = 0;
+    mutable int32 CachedSupplyUsed = 0;
+    mutable int32 CachedSupplyCap = 0;
 };
-

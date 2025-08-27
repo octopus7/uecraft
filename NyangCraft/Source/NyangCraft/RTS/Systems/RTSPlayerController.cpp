@@ -4,6 +4,11 @@
 #include "RTS/Resources/RTSResource_Mineral.h"
 #include "RTS/UI/RTSSelectionWidget.h"
 #include "RTS/UI/RTSHUDWidget.h"
+#include "RTS/Buildings/RTSBuilding_Barracks.h"
+#include "RTS/Buildings/RTSBuilding_SupplyDepot.h"
+#include "RTS/Buildings/RTSBuilding_CommandCenter.h"
+#include "RTS/Buildings/RTSBuilding_Base.h"
+#include "RTS/Systems/RTSGameMode.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 #include "EngineUtils.h"
@@ -25,6 +30,34 @@ void ARTSPlayerController::SetupInputComponent()
 void ARTSPlayerController::PlayerTick(float DeltaTime)
 {
     Super::PlayerTick(DeltaTime);
+
+    // Toggle build mode (polling)
+    if (WasInputKeyJustPressed(EKeys::B))
+    {
+        TogglePlaceBarracksMode();
+    }
+    if (WasInputKeyJustPressed(EKeys::D))
+    {
+        TogglePlaceSupplyDepotMode();
+    }
+
+    // Handle building placement on left click when in build mode
+    if (bPlacingBarracks && WasInputKeyJustPressed(EKeys::LeftMouseButton))
+    {
+        if (PlaceBarracksAtCursor())
+        {
+            bPlacingBarracks = false;
+        }
+        return; // avoid starting selection this frame
+    }
+    if (bPlacingSupplyDepot && WasInputKeyJustPressed(EKeys::LeftMouseButton))
+    {
+        if (PlaceSupplyDepotAtCursor())
+        {
+            bPlacingSupplyDepot = false;
+        }
+        return; // avoid starting selection this frame
+    }
 
     if (WasInputKeyJustPressed(EKeys::LeftMouseButton))
     {
@@ -54,6 +87,70 @@ void ARTSPlayerController::PlayerTick(float DeltaTime)
     if (WasInputKeyJustPressed(EKeys::RightMouseButton))
     {
         HandleCommand();
+    }
+
+    // Train Marine on M
+    if (WasInputKeyJustPressed(EKeys::M))
+    {
+        FHitResult Hit;
+        const bool bHit = TraceUnderCursor(Hit);
+        const FVector Around = bHit ? Hit.ImpactPoint : FVector::ZeroVector;
+        UWorld* World = GetWorld();
+        if (World)
+        {
+            class ARTSBuilding_Barracks* Best = nullptr;
+            float BestD2 = TNumericLimits<float>::Max();
+            for (TActorIterator<ARTSBuilding_Barracks> It(World); It; ++It)
+            {
+                ARTSBuilding_Barracks* B = *It;
+                if (!B || B->IsUnderConstruction()) continue;
+                const float D2 = FVector::DistSquared(B->GetActorLocation(), Around);
+                if (!bHit || D2 < BestD2)
+                {
+                    Best = B; BestD2 = D2;
+                }
+            }
+            if (Best)
+            {
+                Best->QueueTrainMarine(1);
+            }
+            else if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 1.2f, FColor::Silver, TEXT("[RTS] 사용 가능한 배럭이 없습니다"));
+            }
+        }
+    }
+
+    // Train Worker on W
+    if (WasInputKeyJustPressed(EKeys::W))
+    {
+        FHitResult Hit;
+        const bool bHit = TraceUnderCursor(Hit);
+        const FVector Around = bHit ? Hit.ImpactPoint : FVector::ZeroVector;
+        UWorld* World = GetWorld();
+        if (World)
+        {
+            class ARTSBuilding_CommandCenter* Best = nullptr;
+            float BestD2 = TNumericLimits<float>::Max();
+            for (TActorIterator<ARTSBuilding_CommandCenter> It(World); It; ++It)
+            {
+                ARTSBuilding_CommandCenter* CC = *It;
+                if (!CC || CC->IsUnderConstruction()) continue;
+                const float D2 = FVector::DistSquared(CC->GetActorLocation(), Around);
+                if (!bHit || D2 < BestD2)
+                {
+                    Best = CC; BestD2 = D2;
+                }
+            }
+            if (Best)
+            {
+                Best->QueueTrainWorker(1);
+            }
+            else if (GEngine)
+            {
+                GEngine->AddOnScreenDebugMessage(-1, 1.2f, FColor::Silver, TEXT("[RTS] 사용 가능한 커맨드센터가 없습니다"));
+            }
+        }
     }
 
     ClearInvalidSelections();
@@ -253,6 +350,96 @@ void ARTSPlayerController::BeginPlay()
             HUDWidget->AddToViewport(900);
         }
     }
+}
+
+void ARTSPlayerController::TogglePlaceBarracksMode()
+{
+    bPlacingBarracks = !bPlacingBarracks;
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.5f, bPlacingBarracks ? FColor::Yellow : FColor::Silver,
+            bPlacingBarracks ? TEXT("[RTS] 배럭 배치 모드: 좌클릭으로 배치") : TEXT("[RTS] 배치 모드 종료"));
+    }
+}
+
+bool ARTSPlayerController::PlaceBarracksAtCursor()
+{
+    FHitResult Hit;
+    if (!TraceUnderCursor(Hit)) return false;
+
+    UWorld* World = GetWorld();
+    if (!World) return false;
+
+    // Check cost from CDO
+    UClass* BuildClass = BarracksClass ? BarracksClass.Get() : ARTSBuilding_Barracks::StaticClass();
+    int32 Cost = 50;
+    if (const ARTSBuilding_Base* CDO = Cast<ARTSBuilding_Base>(BuildClass->GetDefaultObject()))
+    {
+        Cost = CDO->GetMineralCost();
+    }
+
+    if (ARTSGameMode* GM = World->GetAuthGameMode<ARTSGameMode>())
+    {
+        if (!GM->TrySpendMinerals(Cost))
+        {
+            return false;
+        }
+    }
+
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    const FVector Loc = Hit.ImpactPoint;
+    const FRotator Rot = FRotator::ZeroRotator;
+    World->SpawnActor( BuildClass, &Loc, &Rot, Params );
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green,
+            FString::Printf(TEXT("[RTS] 배럭 건설 시작: X=%.0f Y=%.0f"), Loc.X, Loc.Y));
+    }
+    return true;
+}
+
+void ARTSPlayerController::TogglePlaceSupplyDepotMode()
+{
+    bPlacingSupplyDepot = !bPlacingSupplyDepot;
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.5f, bPlacingSupplyDepot ? FColor::Yellow : FColor::Silver,
+            bPlacingSupplyDepot ? TEXT("[RTS] 보급창 배치 모드: 좌클릭으로 배치") : TEXT("[RTS] 배치 모드 종료"));
+    }
+}
+
+bool ARTSPlayerController::PlaceSupplyDepotAtCursor()
+{
+    FHitResult Hit;
+    if (!TraceUnderCursor(Hit)) return false;
+    UWorld* World = GetWorld();
+    if (!World) return false;
+
+    UClass* DepotClass = SupplyDepotClass ? SupplyDepotClass.Get() : ARTSBuilding_SupplyDepot::StaticClass();
+    int32 Cost = 20;
+    if (const ARTSBuilding_Base* CDO = Cast<ARTSBuilding_Base>(DepotClass->GetDefaultObject()))
+    {
+        Cost = CDO->GetMineralCost();
+    }
+    if (ARTSGameMode* GM = World->GetAuthGameMode<ARTSGameMode>())
+    {
+        if (!GM->TrySpendMinerals(Cost))
+        {
+            return false;
+        }
+    }
+    FActorSpawnParameters Params;
+    Params.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+    const FVector Loc2 = Hit.ImpactPoint;
+    const FRotator Rot2 = FRotator::ZeroRotator;
+    World->SpawnActor( DepotClass, &Loc2, &Rot2, Params );
+    if (GEngine)
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 1.5f, FColor::Green,
+            FString::Printf(TEXT("[RTS] 보급창 건설 시작: X=%.0f Y=%.0f"), Hit.ImpactPoint.X, Hit.ImpactPoint.Y));
+    }
+    return true;
 }
 
 void ARTSPlayerController::ClearSelection()

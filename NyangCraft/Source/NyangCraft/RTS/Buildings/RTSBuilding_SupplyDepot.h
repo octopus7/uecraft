@@ -10,6 +10,8 @@ class ARTSBuilding_SupplyDepot : public ARTSBuilding_Base
     GENERATED_BODY()
 
 public:
-    ARTSBuilding_SupplyDepot() = default;
-};
+    ARTSBuilding_SupplyDepot();
 
+protected:
+    virtual void OnConstructionCompleted() override;
+};
